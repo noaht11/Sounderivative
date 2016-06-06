@@ -1,7 +1,6 @@
 package com.lightark.sounderivative;
 
 import java.io.File;
-import java.math.BigDecimal;
 
 public class Sounderivative
 {
@@ -60,7 +59,6 @@ public class Sounderivative
         catch (Exception e)
         {
             e.printStackTrace();
-            System.err.println(e);
         }
     }
 }
