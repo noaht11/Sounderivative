@@ -1,4 +1,4 @@
-package com.lightark.sounderivative;// Wav file IO class
+package com.lightark.sounderivative.audio;// Wav file IO class
 // A.Greensted
 // http://www.labbookpages.co.uk
 

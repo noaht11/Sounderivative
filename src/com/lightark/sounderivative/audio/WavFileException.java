@@ -1,4 +1,4 @@
-package com.lightark.sounderivative;
+package com.lightark.sounderivative.audio;
 
 public class WavFileException extends Exception
 {

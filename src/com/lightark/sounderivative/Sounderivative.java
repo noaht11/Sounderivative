@@ -1,5 +1,8 @@
 package com.lightark.sounderivative;
 
+import com.lightark.sounderivative.audio.WavFile;
+import com.lightark.sounderivative.gui.MainFrame;
+
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -19,6 +22,10 @@ public class Sounderivative
 
     public static void main(String[] args)
     {
+        MainFrame frame = new MainFrame();
+        frame.setVisible(true);
+        if(true) return;
+
         MODE = Integer.parseInt(args[0]);
 
         try
