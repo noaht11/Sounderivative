@@ -3,6 +3,7 @@ package com.lightark.sounderivative;
 import com.lightark.sounderivative.audio.WavFile;
 import com.lightark.sounderivative.gui.MainFrame;
 
+import javax.swing.*;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -22,6 +23,28 @@ public class Sounderivative
 
     public static void main(String[] args)
     {
+        try
+        {
+            // Set cross-platform Java L&F (also called "Metal")
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }
+        catch(UnsupportedLookAndFeelException e)
+        {
+            // handle exception
+        }
+        catch(ClassNotFoundException e)
+        {
+            // handle exception
+        }
+        catch(InstantiationException e)
+        {
+            // handle exception
+        }
+        catch(IllegalAccessException e)
+        {
+            // handle exception
+        }
+
         MainFrame frame = new MainFrame();
         frame.setVisible(true);
         if(true) return;

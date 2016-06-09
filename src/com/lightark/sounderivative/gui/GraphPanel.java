@@ -5,17 +5,19 @@ import com.lightark.sounderivative.audio.WavData;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
-import java.io.File;
 
 public class GraphPanel extends JPanel
 {
     private WavData wavData;
 
-    public GraphPanel(File file)
+    private Color graphColor;
+
+    public GraphPanel(WavData wavData, Color graphColor)
     {
         setBackground(Color.WHITE);
 
-        this.wavData = WavData.loadFromFile(file);
+        this.wavData = wavData;
+        this.graphColor = graphColor;
     }
 
     private int calculateYEquals0(int channelIndex, int heightPerChannel)
@@ -28,7 +30,13 @@ public class GraphPanel extends JPanel
     {
         super.paint(g);
 
+        if(wavData == null)
+        {
+            return;
+        }
+
         Graphics2D g2 = (Graphics2D)g;
+        g2.setColor(graphColor);
 
         // x
         int pixelWidth = getWidth();
@@ -63,6 +71,11 @@ public class GraphPanel extends JPanel
             {
                 continue;
             }
+
+            /*if(iterator.currentIndex() > 1000)
+            {
+                break;
+            }*/
 
             int channelIndex = 0;
             for(double channelValue : sample)
