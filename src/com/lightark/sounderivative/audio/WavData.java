@@ -16,23 +16,24 @@ public class WavData
     private double[][][] mainWavData;
     private double[][] overflowWavData;
 
-    public static WavData fromFile(File file) throws Exception
+    public static WavData fromFile(File file, WavProcessingListener listener) throws Exception
     {
-        return new WavData(file);
+        return new WavData(file, listener);
     }
 
-    public static WavData fromExisting(Transformer transformer) throws Exception
+    public static WavData fromExisting(Transformer transformer, WavProcessingListener listener) throws Exception
     {
         return new WavData(
                 transformer.getNumChannels(),
                 transformer.getNumFrames(),
                 transformer.getSampleRate(),
                 transformer.getValidBits(),
-                transformer
+                transformer,
+                listener
         );
     }
 
-    private WavData(int numChannels, long numFrames, long sampleRate, int validBits, BufferedInput input) throws Exception
+    private WavData(int numChannels, long numFrames, long sampleRate, int validBits, BufferedInput input, WavProcessingListener listener) throws Exception
     {
         this.numChannels = numChannels;
         this.numFrames = numFrames;
@@ -48,13 +49,13 @@ public class WavData
         System.out.println("");
         System.out.println("Beginning Processing...");
 
-        readData(input);
+        readData(input, listener);
 
         System.out.println("...Finished Processing");
         System.out.println("------------------------------------------------------------------------------");
     }
 
-    private WavData(File file) throws Exception
+    private WavData(File file, WavProcessingListener listener) throws Exception
     {
         this.file = file;
 
@@ -84,7 +85,7 @@ public class WavData
             {
                 return wavFile.readFrames(buffer, buffer.length);
             }
-        });
+        }, listener);
 
         System.out.println("...Finished Processing");
         System.out.println("------------------------------------------------------------------------------");
@@ -100,10 +101,11 @@ public class WavData
         overflowWavData = new double[numChannels][overflowFrameCount];
     }
 
-    private void readData(BufferedInput input) throws Exception
+    private void readData(BufferedInput input, WavProcessingListener listener) throws Exception
     {
         double[][] inputBuffer = new double[numChannels][100];
         int framesRead;
+        int totalFramesRead = 0;
         int arrayIndex = 0;
         int frameIndex = 0;
         do
@@ -133,6 +135,9 @@ public class WavData
                     arrayIndex++;
                 }
             }
+
+            totalFramesRead += framesRead;
+            listener.progressUpdate(totalFramesRead, numFrames);
         }
         while(framesRead != 0);
     }

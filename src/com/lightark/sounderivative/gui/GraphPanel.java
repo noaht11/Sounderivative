@@ -4,7 +4,6 @@ import com.lightark.sounderivative.audio.WavData;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.GeneralPath;
 
 public class GraphPanel extends JPanel
 {
@@ -12,92 +11,44 @@ public class GraphPanel extends JPanel
 
     private Color graphColor;
 
+    private ChannelGraph[] channels;
+
     public GraphPanel(WavData wavData, Color graphColor)
     {
         setBackground(Color.WHITE);
+        setLayout(new GridBagLayout());
 
         this.wavData = wavData;
         this.graphColor = graphColor;
+
+        final GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weightx = 1;
+        constraints.weighty = 1;
+
+        channels = new ChannelGraph[wavData.getNumChannels()];
+        for(int i = 0;i < channels.length;i++)
+        {
+            ChannelGraph theChannel = new ChannelGraph(wavData, i, graphColor);
+            channels[i] = theChannel;
+            constraints.gridy = i;
+            add(theChannel, constraints);
+        }
     }
 
-    private int calculateYEquals0(int channelIndex, int heightPerChannel)
+    public void setZoom(float zoom)
     {
-        return (2 * channelIndex + 1) * (heightPerChannel / 2);
+        for(ChannelGraph channel : channels)
+        {
+            channel.setZoom(zoom);
+        }
     }
 
-    @Override
-    public void paint(Graphics g)
+    public void setScroll(int scroll)
     {
-        super.paint(g);
-
-        if(wavData == null)
+        for(ChannelGraph channel : channels)
         {
-            return;
-        }
-
-        Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(graphColor);
-
-        // x
-        int pixelWidth = getWidth();
-        long pixelsPerFrame = pixelWidth / wavData.getNumFrames();
-        long framesPerPixel = wavData.getNumFrames() / pixelWidth;
-
-        // y
-        int pixelHeight = getHeight();
-        int heightPerChannel = pixelHeight / wavData.getNumChannels();
-
-        if(pixelsPerFrame == 0)
-        {
-            // We can't even fit one pixel per frame so we have to use multiple frames for each pixel
-        }
-
-        WavData.WavDataIterator iterator = wavData.createIterator();
-        int xValueCount = 0;
-
-        GeneralPath[] paths = new GeneralPath[wavData.getNumChannels()];
-        for(int i = 0;i < paths.length;i++)
-        {
-            paths[i] = new GeneralPath();
-            paths[i].moveTo(0, calculateYEquals0(i, heightPerChannel));
-        }
-
-        while(iterator.hasNext())
-        {
-            double[] sample = iterator.nextFrame();
-
-            // Only capture every (framesPerPixel)th value
-            if(iterator.currentIndex() % framesPerPixel != 0)
-            {
-                continue;
-            }
-
-            /*if(iterator.currentIndex() > 1000)
-            {
-                break;
-            }*/
-
-            int channelIndex = 0;
-            for(double channelValue : sample)
-            {
-                // x
-                long xValue = xValueCount;
-                int xCoord = (int)xValue;
-
-                // y
-                int yValue = (int)(channelValue * (double)heightPerChannel);
-                int yCoord = calculateYEquals0(channelIndex, heightPerChannel) + -yValue;
-
-                paths[channelIndex].lineTo(xCoord, yCoord);
-
-                channelIndex++;
-            }
-            xValueCount++;
-        }
-
-        for(GeneralPath path : paths)
-        {
-            g2.draw(path);
+            channel.setScroll(scroll);
         }
     }
 }

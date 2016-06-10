@@ -71,7 +71,7 @@ public class MainFrame extends JFrame implements ChangeListener, TabCloseListene
 
     private void addTab(File source)
     {
-        WavAnalysisPanel wavAnalysisPanel = new WavAnalysisPanel(source);
+        WavAnalysisPanel wavAnalysisPanel = new WavAnalysisPanel(source, this);
         tabs.addTab(source.getName(), wavAnalysisPanel);
         tabs.setTabComponentAt((tabs.getTabCount() - 1), new ClosableTab(tabs, this));
         tabs.setToolTipTextAt(tabs.getTabCount() - 1, source.getName());

@@ -2,8 +2,13 @@ package com.lightark.sounderivative.gui;
 
 import com.lightark.sounderivative.audio.WavData;
 
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 
 public class WavDataPanel extends JPanel
 {
@@ -11,7 +16,7 @@ public class WavDataPanel extends JPanel
 
     private GraphPanel graphPanel;
 
-    public WavDataPanel(WavData wavData, String title, Color graphColor)
+    public WavDataPanel(final WavData wavData, String title, Color graphColor)
     {
         this.wavData = wavData;
 
@@ -50,9 +55,66 @@ public class WavDataPanel extends JPanel
         infoPanel.add(validBitsPanel);
         infoPanel.add(bytesPerSamplePanel);
 
+        infoPanel.add(Box.createVerticalStrut(10));
+
+        JButton playButton = new JButton("Play");
+        playButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                /*try
+                {
+                    SourceDataLine line = AudioSystem.getSourceDataLine(new AudioFormat(AudioFormat.Encoding.PCM_FLOAT, wavData.getSampleRate(), wavData.getBytesPerSample() * 2, wavData.getNumChannels(), 1, 1, true));
+                    line.start();
+
+                    Clip clip = AudioSystem.getClip();
+                    AudioInputStream inputStream = AudioSystem.getAudioInputStream(new File("C:\\Users\\Noah\\Documents\\Test.wav"));
+                    clip.open(inputStream);
+                    clip.start();
+                }
+                catch(LineUnavailableException e1)
+                {
+                    e1.printStackTrace();
+                }
+                catch(IOException e1)
+                {
+                    e1.printStackTrace();
+                }
+                catch(UnsupportedAudioFileException e1)
+                {
+                    e1.printStackTrace();
+                }*/
+            }
+        });
+        infoPanel.add(playButton);
+
+        infoPanel.add(Box.createVerticalStrut(5));
+
+        JButton exportButton = new JButton("Export...");
+        playButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                // TODO
+            }
+        });
+        infoPanel.add(exportButton);
+
         add(infoPanel, BorderLayout.LINE_START);
 
         this.graphPanel = new GraphPanel(wavData, graphColor);
         add(this.graphPanel, BorderLayout.CENTER);
+    }
+
+    public void setZoom(float zoom)
+    {
+        graphPanel.setZoom(zoom);
+    }
+
+    public void setScroll(int scroll)
+    {
+        graphPanel.setScroll(scroll);
     }
 }
