@@ -46,21 +46,21 @@ public class ChannelGraph extends JPanel
         }
 
         Graphics2D g2 = (Graphics2D)g;
-        g2.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(graphColor);
 
         // x
-        int pixelWidth = (int)(getWidth() * zoom);
-        long pixelsPerFrame = pixelWidth / wavData.getNumFrames();
-        long framesPerPixel = wavData.getNumFrames() / pixelWidth;
+        int pixelWidth = getWidth();
+        int scaledWidth = (int)(getWidth() * zoom);
+        if(scaledWidth == 0)
+        {
+            return;
+        }
+        long pixelsPerFrame = scaledWidth / wavData.getNumFrames();
+        long framesPerPixel = wavData.getNumFrames() / scaledWidth;
 
         // y
         int pixelHeight = getHeight();
-
-        if(pixelsPerFrame == 0)
-        {
-            // We can't even fit one pixel per frame so we have to use multiple frames for each pixel
-        }
 
         WavData.WavDataIterator iterator = wavData.createIterator();
         int xValueCount = 0;
@@ -78,22 +78,33 @@ public class ChannelGraph extends JPanel
         {
             double[] sample = iterator.nextFrame();
 
-            // Only capture every (framesPerPixel)th value
-            if(iterator.currentIndex() % framesPerPixel != 0)
+            if(pixelsPerFrame == 0)
             {
-                continue;
+                // We can't even fit one pixel per frame so we have to use multiple frames for each pixel
+                // Only capture every (framesPerPixel)th value
+                if(iterator.currentIndex() % framesPerPixel != 0)
+                {
+                    continue;
+                }
             }
-
-            /*if(iterator.currentIndex() > 1000)
-            {
-                break;
-            }*/
 
             double channelValue = sample[channelIndex];
 
             // x
             long xValue = xValueCount;
             int xCoord = (int)xValue + scroll;
+
+            // Skip over x coordinates that are off-screen to the left
+            if(xCoord < 0)
+            {
+                xValueCount++;
+                continue;
+            }
+            // Stop drawing as soon as we're past the right edge of the screen
+            if(xCoord > pixelWidth)
+            {
+                break;
+            }
 
             // y
             double yValue = (channelValue * (double)pixelHeight);
