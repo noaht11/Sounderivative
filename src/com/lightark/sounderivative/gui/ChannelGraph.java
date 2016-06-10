@@ -14,6 +14,7 @@ public class ChannelGraph extends JPanel
     private Color graphColor;
     private float zoom = 1.0f;
     private int scroll = 0;
+    boolean rightEdgeOffScreen = false;
 
     public ChannelGraph(WavData wavData, int channelIndex, Color graphColor)
     {
