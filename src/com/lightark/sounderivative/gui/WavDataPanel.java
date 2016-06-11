@@ -1,6 +1,11 @@
 package com.lightark.sounderivative.gui;
 
+import com.lightark.sounderivative.audio.Transformer;
 import com.lightark.sounderivative.audio.WavData;
+import com.lightark.sounderivative.audio.WavFileException;
+import com.lightark.sounderivative.audio.WavProcessingListener;
+import com.lightark.sounderivative.gui.utils.ProgressDialog;
+import com.lightark.sounderivative.gui.utils.filechoosers.SaveFileChooser;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -16,7 +21,7 @@ public class WavDataPanel extends JPanel
 
     private GraphPanel graphPanel;
 
-    public WavDataPanel(final WavData wavData, String title, Color graphColor)
+    public WavDataPanel(final WavData wavData, final String title, Color graphColor)
     {
         this.wavData = wavData;
 
@@ -92,12 +97,62 @@ public class WavDataPanel extends JPanel
         infoPanel.add(Box.createVerticalStrut(5));
 
         JButton exportButton = new JButton("Export...");
-        playButton.addActionListener(new ActionListener()
+        exportButton.addActionListener(new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                // TODO
+                final JFrame frame = ((JFrame)SwingUtilities.getWindowAncestor(WavDataPanel.this));
+                SaveFileChooser sfc = new SaveFileChooser(frame, ".wav", "WAV files (*.wav)", title + ".wav")
+                {
+                    @Override
+                    public void chosen(final Object obj)
+                    {
+                        final ProgressDialog progressDialog = new ProgressDialog(frame);
+                        progressDialog.setDescription("Exporting as WAV...");
+                        new Thread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                try
+                                {
+                                    progressDialog.setVisible(true);
+                                    File destination = (File)obj;
+                                    wavData.exportToFile(destination, new WavProcessingListener()
+                                    {
+                                        @Override
+                                        public void progressUpdate(long framesProcessed, long numFrames)
+                                        {
+                                            double progress = (double)framesProcessed;
+                                            double total = (double)numFrames;
+
+                                            progressDialog.setPercentage(progress / total);
+                                            progressDialog.validate();
+                                            progressDialog.repaint();
+                                        }
+                                    });
+                                    progressDialog.dispose();
+
+                                    int selection = JOptionPane.showOptionDialog(frame, "File saved to: " + destination.getAbsolutePath(), "Export Complete", JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, new String[]{"Show in Explorer", "Close"}, 0);
+                                    if(selection == 0)
+                                    {
+                                        Runtime.getRuntime().exec("explorer.exe /select, \"" + destination.getAbsolutePath() + "\"");
+                                    }
+                                }
+                                catch(IOException e1)
+                                {
+                                    e1.printStackTrace();
+                                }
+                                catch(WavFileException e1)
+                                {
+                                    e1.printStackTrace();
+                                }
+                            }
+                        }).start();
+                    }
+                };
+                sfc.showChooser();
             }
         });
         infoPanel.add(exportButton);

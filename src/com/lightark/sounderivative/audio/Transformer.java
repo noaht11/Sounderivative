@@ -45,10 +45,10 @@ public abstract class Transformer implements BufferedInput
 
     public static class Differentiator extends Transformer
     {
-        private double deltaT;
-        private int numChannels;
+        protected double deltaT;
+        protected int numChannels;
 
-        private double[] previousSamples;
+        protected double[] previousSamples;
 
         public Differentiator(WavData data)
         {
@@ -85,22 +85,7 @@ public abstract class Transformer implements BufferedInput
                     double sample = frame[c];
                     if(!Double.isNaN(previousSample))
                     {
-                        /*double dx;
-                        switch(WITH_RESPECT_TO)
-                        {
-                            case RESPECT_TIME:
-                                dx = deltaT;
-                                break;
-                            case RESPECT_SAMPLE_NUMBER:
-                            default:
-                                dx = 1.0;
-                                break;
-                        }*/
-
-                        double dx = 1.0;
-                        double dy = sample - previousSample;
-
-                        double outputSample = calculateOuput(dy, dx);
+                        double outputSample = calculateOutput(sample, previousSample);
                         buffer[c][outputFrameCount] = outputSample;
                         outputWritten = true;
                     }
@@ -117,8 +102,11 @@ public abstract class Transformer implements BufferedInput
             return outputFrameCount;
         }
 
-        protected double calculateOuput(double dy, double dx)
+        protected double calculateOutput(double sample, double previousSample)
         {
+            double dx = deltaT;
+            double dy = sample - previousSample;
+
             return dy / dx;
         }
     }
@@ -133,9 +121,10 @@ public abstract class Transformer implements BufferedInput
         }
 
         @Override
-        protected double calculateOuput(double dy, double dx)
+        protected double calculateOutput(double sample, double previousSample)
         {
-            accumulatedArea += dy * dx;
+            double dx = deltaT;
+            accumulatedArea += ((sample + previousSample) / 2) * dx;
             return accumulatedArea;
         }
     }

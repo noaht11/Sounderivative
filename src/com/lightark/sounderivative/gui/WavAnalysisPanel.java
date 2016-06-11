@@ -3,6 +3,7 @@ package com.lightark.sounderivative.gui;
 import com.lightark.sounderivative.audio.Transformer;
 import com.lightark.sounderivative.audio.WavData;
 import com.lightark.sounderivative.audio.WavProcessingListener;
+import com.lightark.sounderivative.gui.utils.ProgressDialog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,8 +12,6 @@ import java.io.File;
 
 public class WavAnalysisPanel extends JPanel implements Runnable
 {
-    private static final int PROGRESS_SCALE = 100000;
-
     private static final float MAX_ZOOM = 20.0f;
     private static final float MIN_ZOOM = 0.2f;
     private static final int ZOOM_IN = 1;
@@ -27,9 +26,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
     private WavData derivativeData;
     private WavData integralData;
 
-    private JDialog progressDialog;
-    private JProgressBar progressBar;
-    private JLabel progressDescription;
+    private ProgressDialog progressDialog;
 
     private JPanel graphs;
 
@@ -72,27 +69,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         add(graphs, BorderLayout.CENTER);
 
         // PROGRESS DIALOG
-        progressDialog = new JDialog(frame, "Processing WAV File", false);
-        progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        progressDialog.setSize(300, 65);
-        progressDialog.setLocationRelativeTo(frame);
-        progressDialog.setUndecorated(true);
-        progressDialog.getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
-
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BorderLayout());
-        contentPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1), BorderFactory.createEmptyBorder(10, 10, 10, 10)));
-        contentPanel.setBackground(Color.WHITE);
-
-        progressDescription = new JLabel();
-        progressDescription.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        contentPanel.add(BorderLayout.PAGE_START, progressDescription);
-
-        progressBar = new JProgressBar(0, PROGRESS_SCALE);
-        progressBar.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        contentPanel.add(BorderLayout.CENTER, progressBar);
-
-        progressDialog.add(contentPanel, BorderLayout.CENTER);
+        progressDialog = new ProgressDialog(frame);
 
         // SCROLL LISTENER
         addMouseWheelListener(new MouseWheelListener()
@@ -249,7 +226,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         constraints.weighty = 1;
 
         // ORIGINAL
-        progressDescription.setText("Reading WAV File...");
+        progressDialog.setDescription("Reading WAV File...");
         try
         {
             srcData = WavData.fromFile(file, new WavProcessingListener()
@@ -257,11 +234,10 @@ public class WavAnalysisPanel extends JPanel implements Runnable
                 @Override
                 public void progressUpdate(long framesProcessed, long numFrames)
                 {
-                    final double progress = (double)framesProcessed;
+                    double progress = (double)framesProcessed;
                     double total = (double)numFrames;
-                    final int percentage = (int)((progress / total) * PROGRESS_SCALE);
 
-                    progressBar.setValue(percentage);
+                    progressDialog.setPercentage(progress / total);
                     progressDialog.validate();
                     progressDialog.repaint();
                 }
@@ -273,7 +249,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         }
 
         // DERIVATIVE
-        progressDescription.setText("Calculating Derivative...");
+        progressDialog.setDescription("Calculating Derivative...");
         try
         {
             derivativeData = WavData.fromExisting(new Transformer.Differentiator(srcData), new WavProcessingListener()
@@ -281,11 +257,10 @@ public class WavAnalysisPanel extends JPanel implements Runnable
                 @Override
                 public void progressUpdate(long framesProcessed, long numFrames)
                 {
-                    final double progress = (double)framesProcessed;
+                    double progress = (double)framesProcessed;
                     double total = (double)numFrames;
-                    final int percentage = (int)((progress / total) * PROGRESS_SCALE);
 
-                    progressBar.setValue(percentage);
+                    progressDialog.setPercentage(progress / total);
                     progressDialog.validate();
                     progressDialog.repaint();
                 }
@@ -297,19 +272,18 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         }
 
         // INTEGRAL
-        progressDescription.setText("Calculating Integral...");
+        progressDialog.setDescription("Calculating Integral of Derivative...");
         try
         {
-            integralData = WavData.fromExisting(new Transformer.Integrator(srcData), new WavProcessingListener()
+            integralData = WavData.fromExisting(new Transformer.Integrator(derivativeData), new WavProcessingListener()
             {
                 @Override
                 public void progressUpdate(long framesProcessed, long numFrames)
                 {
-                    final double progress = (double)framesProcessed;
+                    double progress = (double)framesProcessed;
                     double total = (double)numFrames;
-                    final int percentage = (int)((progress / total) * PROGRESS_SCALE);
 
-                    progressBar.setValue(percentage);
+                    progressDialog.setPercentage(progress / total);
                     progressDialog.validate();
                     progressDialog.repaint();
                 }

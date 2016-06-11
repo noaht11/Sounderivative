@@ -1,6 +1,9 @@
 package com.lightark.sounderivative.audio;
 
+import sun.net.ProgressListener;
+
 import java.io.File;
+import java.io.IOException;
 
 public class WavData
 {
@@ -15,6 +18,9 @@ public class WavData
 
     private double[][][] mainWavData;
     private double[][] overflowWavData;
+
+    private double maxValue;
+    private double minValue;
 
     public static WavData fromFile(File file, WavProcessingListener listener) throws Exception
     {
@@ -87,6 +93,8 @@ public class WavData
             }
         }, listener);
 
+        wavFile.close();
+
         System.out.println("...Finished Processing");
         System.out.println("------------------------------------------------------------------------------");
     }
@@ -118,6 +126,16 @@ public class WavData
                 for(int c = 0;c < numChannels;c++)
                 {
                     double sample = inputBuffer[c][f];
+
+                    // Check max/min
+                    if(Double.isNaN(maxValue) || sample > maxValue)
+                    {
+                        maxValue = sample;
+                    }
+                    if(Double.isNaN(minValue) || sample < minValue)
+                    {
+                        minValue = sample;
+                    }
 
                     if(arrayIndex >= mainWavData.length)
                     {
@@ -170,6 +188,54 @@ public class WavData
     public int getBlockAlign()
     {
         return blockAlign;
+    }
+
+    public double getMaxValue()
+    {
+        return maxValue;
+    }
+
+    public double getMinValue()
+    {
+        return minValue;
+    }
+
+    public void exportToFile(File file, WavProcessingListener listener) throws IOException, WavFileException
+    {
+        WavFile outputWavFile = WavFile.newWavFile(file, numChannels, numFrames, validBits, sampleRate);
+
+        double[][] outputBuffer = new double[numChannels][100];
+
+        int outputBufferCount = 0;
+        long totalOutputFrameCount = 0;
+        WavDataIterator iterator = createIterator();
+        while(iterator.hasNext())
+        {
+            double[] frame = iterator.nextFrame();
+            for(int c = 0;c < frame.length;c++)
+            {
+                outputBuffer[c][outputBufferCount] = frame[c];
+            }
+            outputBufferCount++;
+
+            if(outputBufferCount == outputBuffer.length)
+            {
+                totalOutputFrameCount += outputBufferCount;
+
+                outputWavFile.writeFrames(outputBuffer, outputBufferCount);
+
+                outputBufferCount = 0;
+                listener.progressUpdate(totalOutputFrameCount, numFrames);
+            }
+        }
+
+        outputWavFile.writeFrames(outputBuffer, outputBufferCount);
+
+        totalOutputFrameCount += outputBufferCount;
+        listener.progressUpdate(totalOutputFrameCount, numFrames);
+        System.out.println(totalOutputFrameCount);
+
+        outputWavFile.close();
     }
 
     public WavDataIterator createIterator()

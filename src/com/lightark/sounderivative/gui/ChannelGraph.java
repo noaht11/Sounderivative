@@ -47,7 +47,7 @@ public class ChannelGraph extends JPanel
         }
 
         Graphics2D g2 = (Graphics2D)g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g2.setColor(graphColor);
 
         // x
@@ -67,13 +67,14 @@ public class ChannelGraph extends JPanel
         int xValueCount = 0;
 
         double yEquals0 = pixelHeight / 2;
+        double yScale = Math.abs(Math.max(wavData.getMaxValue(), wavData.getMinValue()));
 
         g2.setColor(Color.LIGHT_GRAY);
         g2.drawLine(0, (int)yEquals0, pixelWidth, (int)yEquals0);
         g2.setColor(graphColor);
 
         GeneralPath path = new GeneralPath();
-        path.moveTo(0, yEquals0);
+        boolean moved = false;
 
         while(iterator.hasNext())
         {
@@ -108,10 +109,18 @@ public class ChannelGraph extends JPanel
             }
 
             // y
-            double yValue = (channelValue * (double)pixelHeight);
-            double yCoord = yEquals0 + -yValue;
+            double yValue = (channelValue * (double)(pixelHeight / 2));
+            double yCoord = yEquals0 + -(yValue / yScale);
 
-            path.lineTo(xCoord, yCoord);
+            if(!moved)
+            {
+                path.moveTo(xCoord, yCoord);
+                moved = true;
+            }
+            else
+            {
+                path.lineTo(xCoord, yCoord);
+            }
 
             xValueCount++;
         }
