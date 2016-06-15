@@ -51,4 +51,12 @@ public class GraphPanel extends JPanel
             channel.setScroll(scroll);
         }
     }
+
+    public void setAutoAmplify(boolean autoAmplify)
+    {
+        for(ChannelGraph channel : channels)
+        {
+            channel.setAutoAmplify(autoAmplify);
+        }
+    }
 }

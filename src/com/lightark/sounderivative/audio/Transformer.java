@@ -43,6 +43,53 @@ public abstract class Transformer implements BufferedInput
         return source.getValidBits();
     }
 
+    public static class Amplifier extends Transformer
+    {
+        private double factor = 1.0f;
+
+        public static double getScaleFactor(WavData data)
+        {
+            return Math.max(Math.abs(data.getMaxValue()), Math.abs(data.getMinValue()));
+        }
+
+        public Amplifier(WavData data, double factor)
+        {
+            super(data);
+
+            this.factor = factor;
+        }
+
+        public Amplifier(WavData data)
+        {
+            super(data);
+
+            factor = getScaleFactor(data);
+        }
+
+        @Override
+        public int read(double[][] buffer) throws Exception
+        {
+            int bufferIndex = 0;
+            WavData.WavDataIterator iterator = getIterator();
+            while(iterator.hasNext())
+            {
+                double[] frame = iterator.nextFrame();
+
+                for(int c = 0;c < getNumChannels();c++)
+                {
+                    buffer[c][bufferIndex] = frame[c] * factor;
+                }
+
+                bufferIndex++;
+                if(bufferIndex == buffer.length)
+                {
+                    break;
+                }
+            }
+            return bufferIndex;
+        }
+    }
+
     public static class Differentiator extends Transformer
     {
         protected double deltaT;

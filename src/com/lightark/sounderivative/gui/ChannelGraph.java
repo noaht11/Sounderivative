@@ -1,5 +1,6 @@
 package com.lightark.sounderivative.gui;
 
+import com.lightark.sounderivative.audio.Transformer;
 import com.lightark.sounderivative.audio.WavData;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ public class ChannelGraph extends JPanel
     private Color graphColor;
     private float zoom = 1.0f;
     private int scroll = 0;
+    private boolean autoAmplify = false;
     boolean rightEdgeOffScreen = false;
 
     public ChannelGraph(WavData wavData, int channelIndex, Color graphColor)
@@ -34,6 +36,11 @@ public class ChannelGraph extends JPanel
     public void setScroll(int scroll)
     {
         this.scroll = scroll;
+    }
+
+    public void setAutoAmplify(boolean autoAmplify)
+    {
+        this.autoAmplify = autoAmplify;
     }
 
     @Override
@@ -67,7 +74,7 @@ public class ChannelGraph extends JPanel
         int xValueCount = 0;
 
         double yEquals0 = pixelHeight / 2;
-        double yScale = Math.abs(Math.max(wavData.getMaxValue(), wavData.getMinValue()));
+        double yScale = autoAmplify ? Transformer.Amplifier.getScaleFactor(wavData) : 1.0;
 
         g2.setColor(Color.LIGHT_GRAY);
         g2.drawLine(0, (int)yEquals0, pixelWidth, (int)yEquals0);

@@ -305,7 +305,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         constraints.gridy = 1;
         graphs.add(derivativeWav, constraints);
 
-        integralWav = new WavDataPanel(integralData, "Integral", Color.RED);
+        integralWav = new WavDataPanel(integralData, "Integral of Derivative", Color.RED);
         constraints.gridy = 2;
         graphs.add(integralWav, constraints);
 

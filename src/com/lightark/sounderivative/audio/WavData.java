@@ -1,14 +1,10 @@
 package com.lightark.sounderivative.audio;
 
-import sun.net.ProgressListener;
-
 import java.io.File;
 import java.io.IOException;
 
 public class WavData
 {
-    private File file;
-
     private int numChannels;
     private long numFrames;
     private long sampleRate;
@@ -63,8 +59,6 @@ public class WavData
 
     private WavData(File file, WavProcessingListener listener) throws Exception
     {
-        this.file = file;
-
         final WavFile wavFile = WavFile.openWavFile(file);
 
         System.out.println("------------------------------------------------------------------------------");
@@ -204,7 +198,8 @@ public class WavData
     {
         WavFile outputWavFile = WavFile.newWavFile(file, numChannels, numFrames, validBits, sampleRate);
 
-        double[][] outputBuffer = new double[numChannels][100];
+        int outputBufferSize = 100;
+        double[][] outputBuffer = new double[numChannels][outputBufferSize];
 
         int outputBufferCount = 0;
         long totalOutputFrameCount = 0;
@@ -215,14 +210,16 @@ public class WavData
             for(int c = 0;c < frame.length;c++)
             {
                 outputBuffer[c][outputBufferCount] = frame[c];
+                System.out.println(outputBufferCount + ": " + frame[c]);
             }
             outputBufferCount++;
 
-            if(outputBufferCount == outputBuffer.length)
+            if(outputBufferCount == outputBufferSize)
             {
                 totalOutputFrameCount += outputBufferCount;
 
                 outputWavFile.writeFrames(outputBuffer, outputBufferCount);
+                System.out.println(outputBufferCount);
 
                 outputBufferCount = 0;
                 listener.progressUpdate(totalOutputFrameCount, numFrames);
@@ -233,7 +230,6 @@ public class WavData
 
         totalOutputFrameCount += outputBufferCount;
         listener.progressUpdate(totalOutputFrameCount, numFrames);
-        System.out.println(totalOutputFrameCount);
 
         outputWavFile.close();
     }
