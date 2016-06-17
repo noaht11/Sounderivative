@@ -1,5 +1,6 @@
 package com.lightark.sounderivative.gui;
 
+import com.lightark.sounderivative.Resources;
 import com.lightark.sounderivative.audio.Transformer;
 import com.lightark.sounderivative.audio.WavData;
 import com.lightark.sounderivative.audio.WavFileException;
@@ -88,7 +89,7 @@ public class WavDataPanel extends JPanel
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                /*try
+                try
                 {
                     SourceDataLine line = AudioSystem.getSourceDataLine(new AudioFormat(AudioFormat.Encoding.PCM_FLOAT, wavData.getSampleRate(), wavData.getBytesPerSample() * 2, wavData.getNumChannels(), 1, 1, true));
                     line.start();
@@ -109,7 +110,7 @@ public class WavDataPanel extends JPanel
                 catch(UnsupportedAudioFileException e1)
                 {
                     e1.printStackTrace();
-                }*/
+                }
             }
         });
         infoPanel.add(playButton);
@@ -153,14 +154,15 @@ public class WavDataPanel extends JPanel
                                     };
 
                                     progressDialog.setDescription("Auto-Amplifying Audio...");
-                                    WavData amplifiedData = autoAmplifyCheckBox.isSelected() ? WavData.fromExisting(new Transformer.Amplifier(wavData), listener) : wavData;
+                                    WavData amplifiedData = true ? WavData.fromExisting(new Transformer.Amplifier(wavData), listener) : wavData;
 
                                     progressDialog.setDescription("Exporting as WAV...");
                                     File destination = (File)obj;
                                     amplifiedData.exportToFile(destination, listener);
                                     progressDialog.dispose();
 
-                                    int selection = JOptionPane.showOptionDialog(frame, "File saved to: " + destination.getAbsolutePath(), "Export Complete", JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, new String[]{"Show in Explorer", "Close"}, 0);
+                                    Icon saveIcon = Resources.loadIcon("save.png");
+                                    int selection = JOptionPane.showOptionDialog(frame, "File saved to: " + destination.getAbsolutePath(), "Export Complete", JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, saveIcon, new String[]{"Show in Explorer", "Close"}, 0);
                                     if(selection == 0)
                                     {
                                         Runtime.getRuntime().exec("explorer.exe /select, \"" + destination.getAbsolutePath() + "\"");

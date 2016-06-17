@@ -5,6 +5,8 @@ import java.io.IOException;
 
 public class WavData
 {
+    private static final int BUFFER_SIZE = 4096;
+
     private int numChannels;
     private long numFrames;
     private long sampleRate;
@@ -48,6 +50,8 @@ public class WavData
 
         System.out.println("------------------------------------------------------------------------------");
         System.out.println("WAV DATA");
+        System.out.println("");
+        System.out.println("Using input: " + input.getClass().getName());
         System.out.println("");
         System.out.println("Beginning Processing...");
 
@@ -105,7 +109,7 @@ public class WavData
 
     private void readData(BufferedInput input, WavProcessingListener listener) throws Exception
     {
-        double[][] inputBuffer = new double[numChannels][100];
+        double[][] inputBuffer = new double[numChannels][BUFFER_SIZE];
         int framesRead;
         int totalFramesRead = 0;
         int arrayIndex = 0;
@@ -198,7 +202,7 @@ public class WavData
     {
         WavFile outputWavFile = WavFile.newWavFile(file, numChannels, numFrames, validBits, sampleRate);
 
-        int outputBufferSize = 100;
+        int outputBufferSize = BUFFER_SIZE;
         double[][] outputBuffer = new double[numChannels][outputBufferSize];
 
         int outputBufferCount = 0;
@@ -210,7 +214,6 @@ public class WavData
             for(int c = 0;c < frame.length;c++)
             {
                 outputBuffer[c][outputBufferCount] = frame[c];
-                System.out.println(outputBufferCount + ": " + frame[c]);
             }
             outputBufferCount++;
 
@@ -219,7 +222,6 @@ public class WavData
                 totalOutputFrameCount += outputBufferCount;
 
                 outputWavFile.writeFrames(outputBuffer, outputBufferCount);
-                System.out.println(outputBufferCount);
 
                 outputBufferCount = 0;
                 listener.progressUpdate(totalOutputFrameCount, numFrames);
@@ -248,12 +250,13 @@ public class WavData
 
         private WavDataIterator()
         {
-            count = mainWavData.length * Integer.MAX_VALUE + overflowWavData[0].length;
+            //count = mainWavData.length * Integer.MAX_VALUE + overflowWavData[0].length;
+            count = getNumFrames();
         }
 
         public boolean hasNext()
         {
-            return frameIndex < (count - 1);
+            return frameIndex < count;
         }
 
         private boolean isOnOverflow()

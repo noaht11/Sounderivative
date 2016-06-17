@@ -77,11 +77,11 @@ public abstract class Transformer implements BufferedInput
 
                 for(int c = 0;c < getNumChannels();c++)
                 {
-                    buffer[c][bufferIndex] = frame[c] * factor;
+                    buffer[c][bufferIndex] = frame[c] / factor;
                 }
 
                 bufferIndex++;
-                if(bufferIndex == buffer.length)
+                if(bufferIndex == buffer[0].length)
                 {
                     break;
                 }

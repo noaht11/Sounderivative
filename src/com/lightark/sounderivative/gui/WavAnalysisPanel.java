@@ -272,10 +272,10 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         }
 
         // INTEGRAL
-        progressDialog.setDescription("Calculating Integral of Derivative...");
+        progressDialog.setDescription("Calculating Integral...");
         try
         {
-            integralData = WavData.fromExisting(new Transformer.Integrator(derivativeData), new WavProcessingListener()
+            integralData = WavData.fromExisting(new Transformer.Integrator(srcData), new WavProcessingListener()
             {
                 @Override
                 public void progressUpdate(long framesProcessed, long numFrames)
@@ -305,7 +305,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         constraints.gridy = 1;
         graphs.add(derivativeWav, constraints);
 
-        integralWav = new WavDataPanel(integralData, "Integral of Derivative", Color.RED);
+        integralWav = new WavDataPanel(integralData, "Integral", Color.RED);
         constraints.gridy = 2;
         graphs.add(integralWav, constraints);
 
