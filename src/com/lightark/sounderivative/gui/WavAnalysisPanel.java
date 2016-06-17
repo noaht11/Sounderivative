@@ -250,6 +250,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         catch(Exception e)
         {
             e.printStackTrace();
+            showAudioLoadError();
         }
 
         // DERIVATIVE
@@ -261,6 +262,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         catch(Exception e)
         {
             e.printStackTrace();
+            showAudioLoadError();
         }
         progressDialog.setDescription("Auto-Amplifying Derivative...");
         try
@@ -270,6 +272,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         catch(Exception e)
         {
             e.printStackTrace();
+            showAudioLoadError();
         }
 
         // INTEGRAL
@@ -281,6 +284,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         catch(Exception e)
         {
             e.printStackTrace();
+            showAudioLoadError();
         }
         progressDialog.setDescription("Auto-Amplifying Integral...");
         try
@@ -290,6 +294,7 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         catch(Exception e)
         {
             e.printStackTrace();
+            showAudioLoadError();
         }
 
 
@@ -310,5 +315,11 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         progressDialog.dispose();
 
         requestFocusInWindow();
+    }
+
+    private void showAudioLoadError()
+    {
+        progressDialog.dispose();
+        JOptionPane.showOptionDialog(null, "Unable to read WAV file", "Error", JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null, null, 0);
     }
 }
