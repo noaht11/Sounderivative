@@ -18,6 +18,8 @@ public class ChannelGraph extends JPanel
     private boolean autoAmplify = false;
     boolean rightEdgeOffScreen = false;
 
+    private long cursorPosition = -1;
+
     public ChannelGraph(WavData wavData, int channelIndex, Color graphColor)
     {
         setBackground(Color.WHITE);
@@ -41,6 +43,11 @@ public class ChannelGraph extends JPanel
     public void setAutoAmplify(boolean autoAmplify)
     {
         this.autoAmplify = autoAmplify;
+    }
+
+    public void setCursorPosition(long frameNumber)
+    {
+        this.cursorPosition = frameNumber;
     }
 
     @Override
@@ -83,6 +90,7 @@ public class ChannelGraph extends JPanel
         GeneralPath path = new GeneralPath();
         boolean moved = false;
 
+        boolean cursorDrawn = false;
         while(iterator.hasNext())
         {
             double[] sample = iterator.nextFrame();
@@ -115,6 +123,13 @@ public class ChannelGraph extends JPanel
                 break;
             }
 
+            // Draw cursor if required
+            if(!cursorDrawn && cursorPosition != -1 && iterator.currentIndex() >= cursorPosition)
+            {
+                g2.drawLine(xCoord, 0, xCoord, pixelHeight);
+                cursorDrawn = true;
+            }
+
             // y
             double yValue = (channelValue * (double)(pixelHeight / 2));
             double yCoord = yEquals0 + -(yValue / yScale);
@@ -133,5 +148,7 @@ public class ChannelGraph extends JPanel
         }
 
         g2.draw(path);
+
+
     }
 }

@@ -59,4 +59,12 @@ public class GraphPanel extends JPanel
             channel.setAutoAmplify(autoAmplify);
         }
     }
+
+    public void setCursorPosition(long frameNumber)
+    {
+        for(ChannelGraph channel : channels)
+        {
+            channel.setCursorPosition(frameNumber);
+        }
+    }
 }

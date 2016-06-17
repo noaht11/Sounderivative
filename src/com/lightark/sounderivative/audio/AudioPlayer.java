@@ -6,7 +6,7 @@ import java.io.InputStream;
 
 public class AudioPlayer implements Runnable
 {
-    private static final int BUFFER_SIZE = 2048;
+    private static final int BUFFER_SIZE = 4096;
 
     private boolean isPlaying = false;
 
@@ -70,6 +70,13 @@ public class AudioPlayer implements Runnable
                 activeThread.interrupt();
             }
         }
+    }
+
+    public long getFrameNumber()
+    {
+        if(!isPlaying) return 0;
+
+        return activeSoundLine.getLongFramePosition();
     }
 
     @Override
