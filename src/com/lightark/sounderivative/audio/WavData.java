@@ -1,7 +1,9 @@
 package com.lightark.sounderivative.audio;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class WavData
 {
@@ -234,6 +236,78 @@ public class WavData
         listener.progressUpdate(totalOutputFrameCount, numFrames);
 
         outputWavFile.close();
+    }
+
+    public InputStream asInputStream()
+    {
+        return new WavDataInputStream();
+    }
+
+    public class WavDataInputStream extends InputStream
+    {
+        private WavDataIterator iterator;
+        double floatOffset;
+        double floatScale;
+
+        public WavDataInputStream()
+        {
+            iterator = createIterator();
+
+            // Calculate conversion factors
+            if (validBits > 8)
+            {
+                // If more than 8 validBits, data is signed
+                // Conversion required multiplying by magnitude of max positive value
+                floatOffset = 0;
+                floatScale = Long.MAX_VALUE >> (64 - validBits);
+            }
+            else
+            {
+                // Else if 8 or less validBits, data is unsigned
+                // Conversion required dividing by max positive value
+                floatOffset = 1;
+                floatScale = 0.5 * ((1 << validBits) - 1);
+            }
+        }
+
+        @Override
+        public int read() throws IOException
+        {
+            return 0;
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException
+        {
+            if(b.length % blockAlign != 0)
+            {
+                throw new IOException("Buffer must have a size that is a multiple of blockAlign: " + blockAlign);
+            }
+
+            int framesToRead = b.length / blockAlign;
+            int framesRead = 0;
+            int bufferPointer = 0;
+            while(iterator.hasNext() && framesRead < framesToRead)
+            {
+                double[] frame = iterator.nextFrame();
+
+                for(double sample : frame)
+                {
+                    long longSample = (long) (floatScale * (floatOffset + sample));
+
+                    for (int byteIndex = 0;byteIndex < bytesPerSample;byteIndex++)
+                    {
+                        b[bufferPointer] = (byte)(longSample & 0xFF);
+                        longSample >>= 8;
+                        bufferPointer++;
+                    }
+                }
+
+                framesRead++;
+            }
+
+            return framesRead * blockAlign;
+        }
     }
 
     public WavDataIterator createIterator()

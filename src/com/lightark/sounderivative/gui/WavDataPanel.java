@@ -1,10 +1,7 @@
 package com.lightark.sounderivative.gui;
 
 import com.lightark.sounderivative.Resources;
-import com.lightark.sounderivative.audio.Transformer;
-import com.lightark.sounderivative.audio.WavData;
-import com.lightark.sounderivative.audio.WavFileException;
-import com.lightark.sounderivative.audio.WavProcessingListener;
+import com.lightark.sounderivative.audio.*;
 import com.lightark.sounderivative.gui.utils.ProgressDialog;
 import com.lightark.sounderivative.gui.utils.filechoosers.SaveFileChooser;
 
@@ -19,19 +16,26 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class WavDataPanel extends JPanel
 {
     private WavData wavData;
+    private WavData autoAmplifiedData;
 
     private GraphPanel graphPanel;
 
-    public WavDataPanel(final WavData wavData, final String title, Color graphColor)
+    private AudioPlayer audioPlayer;
+
+    public WavDataPanel(final WavData wavData, final WavData autoAmplifiedData, final String title, Color graphColor)
     {
         this.wavData = wavData;
+        this.autoAmplifiedData = autoAmplifiedData;
 
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, Color.BLACK));
+
+        final JFrame frame = ((JFrame)SwingUtilities.getWindowAncestor(WavDataPanel.this));
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.PAGE_AXIS));
@@ -83,33 +87,30 @@ public class WavDataPanel extends JPanel
 
         infoPanel.add(Box.createVerticalStrut(5));
 
-        JButton playButton = new JButton("Play");
+        audioPlayer = new AudioPlayer();
+
+        final JButton playButton = new JButton("Play");
         playButton.addActionListener(new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                try
+                if(audioPlayer.isPlaying())
                 {
-                    SourceDataLine line = AudioSystem.getSourceDataLine(new AudioFormat(AudioFormat.Encoding.PCM_FLOAT, wavData.getSampleRate(), wavData.getBytesPerSample() * 2, wavData.getNumChannels(), 1, 1, true));
-                    line.start();
-
-                    Clip clip = AudioSystem.getClip();
-                    AudioInputStream inputStream = AudioSystem.getAudioInputStream(new File("C:\\Users\\Noah\\Documents\\Test.wav"));
-                    clip.open(inputStream);
-                    clip.start();
+                    audioPlayer.stopAudio();
+                    playButton.setText("Play");
                 }
-                catch(LineUnavailableException e1)
+                else
                 {
-                    e1.printStackTrace();
-                }
-                catch(IOException e1)
-                {
-                    e1.printStackTrace();
-                }
-                catch(UnsupportedAudioFileException e1)
-                {
-                    e1.printStackTrace();
+                    try
+                    {
+                        playButton.setText("Stop");
+                        audioPlayer.playAudio(autoAmplifyCheckBox.isSelected() ? autoAmplifiedData : wavData);
+                    }
+                    catch(LineUnavailableException e1)
+                    {
+                        e1.printStackTrace();
+                    }
                 }
             }
         });
@@ -123,7 +124,6 @@ public class WavDataPanel extends JPanel
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                final JFrame frame = ((JFrame)SwingUtilities.getWindowAncestor(WavDataPanel.this));
                 SaveFileChooser sfc = new SaveFileChooser(frame, ".wav", "WAV files (*.wav)", title + ".wav")
                 {
                     @Override
@@ -153,12 +153,16 @@ public class WavDataPanel extends JPanel
                                         }
                                     };
 
-                                    progressDialog.setDescription("Auto-Amplifying Audio...");
-                                    WavData amplifiedData = true ? WavData.fromExisting(new Transformer.Amplifier(wavData), listener) : wavData;
-
                                     progressDialog.setDescription("Exporting as WAV...");
                                     File destination = (File)obj;
-                                    amplifiedData.exportToFile(destination, listener);
+                                    if(autoAmplifyCheckBox.isSelected())
+                                    {
+                                        autoAmplifiedData.exportToFile(destination, listener);
+                                    }
+                                    else
+                                    {
+                                        wavData.exportToFile(destination, listener);
+                                    }
                                     progressDialog.dispose();
 
                                     Icon saveIcon = Resources.loadIcon("save.png");

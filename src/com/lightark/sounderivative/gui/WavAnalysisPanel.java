@@ -24,7 +24,9 @@ public class WavAnalysisPanel extends JPanel implements Runnable
     private File file;
     private WavData srcData;
     private WavData derivativeData;
+    private WavData autoAmplifiedDerivativeData;
     private WavData integralData;
+    private WavData autoAmplifiedIntegralData;
 
     private ProgressDialog progressDialog;
 
@@ -225,23 +227,25 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         constraints.weightx = 1;
         constraints.weighty = 1;
 
+        WavProcessingListener wavProcessingListener = new WavProcessingListener()
+        {
+            @Override
+            public void progressUpdate(long framesProcessed, long numFrames)
+            {
+                double progress = (double)framesProcessed;
+                double total = (double)numFrames;
+
+                progressDialog.setPercentage(progress / total);
+                progressDialog.validate();
+                progressDialog.repaint();
+            }
+        };
+
         // ORIGINAL
         progressDialog.setDescription("Reading WAV File...");
         try
         {
-            srcData = WavData.fromFile(file, new WavProcessingListener()
-            {
-                @Override
-                public void progressUpdate(long framesProcessed, long numFrames)
-                {
-                    double progress = (double)framesProcessed;
-                    double total = (double)numFrames;
-
-                    progressDialog.setPercentage(progress / total);
-                    progressDialog.validate();
-                    progressDialog.repaint();
-                }
-            });
+            srcData = WavData.fromFile(file, wavProcessingListener);
         }
         catch(Exception e)
         {
@@ -252,19 +256,16 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         progressDialog.setDescription("Calculating Derivative...");
         try
         {
-            derivativeData = WavData.fromExisting(new Transformer.Differentiator(srcData), new WavProcessingListener()
-            {
-                @Override
-                public void progressUpdate(long framesProcessed, long numFrames)
-                {
-                    double progress = (double)framesProcessed;
-                    double total = (double)numFrames;
-
-                    progressDialog.setPercentage(progress / total);
-                    progressDialog.validate();
-                    progressDialog.repaint();
-                }
-            });
+            derivativeData = WavData.fromExisting(new Transformer.Differentiator(srcData), wavProcessingListener);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        progressDialog.setDescription("Auto-Amplifying Derivative...");
+        try
+        {
+            autoAmplifiedDerivativeData = WavData.fromExisting(new Transformer.Amplifier(derivativeData), wavProcessingListener);
         }
         catch(Exception e)
         {
@@ -275,19 +276,16 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         progressDialog.setDescription("Calculating Integral...");
         try
         {
-            integralData = WavData.fromExisting(new Transformer.Integrator(srcData), new WavProcessingListener()
-            {
-                @Override
-                public void progressUpdate(long framesProcessed, long numFrames)
-                {
-                    double progress = (double)framesProcessed;
-                    double total = (double)numFrames;
-
-                    progressDialog.setPercentage(progress / total);
-                    progressDialog.validate();
-                    progressDialog.repaint();
-                }
-            });
+            integralData = WavData.fromExisting(new Transformer.Integrator(srcData), wavProcessingListener);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        progressDialog.setDescription("Auto-Amplifying Integral...");
+        try
+        {
+            autoAmplifiedIntegralData = WavData.fromExisting(new Transformer.Amplifier(integralData), wavProcessingListener);
         }
         catch(Exception e)
         {
@@ -297,15 +295,15 @@ public class WavAnalysisPanel extends JPanel implements Runnable
 
         // DISPLAY ALL THE GRAPHS
 
-        srcWav = new WavDataPanel(srcData, "Original", Color.BLACK);
+        srcWav = new WavDataPanel(srcData, srcData, "Original", Color.BLACK);
         constraints.gridy = 0;
         graphs.add(srcWav, constraints);
 
-        derivativeWav = new WavDataPanel(derivativeData, "Derivative", Color.BLUE);
+        derivativeWav = new WavDataPanel(derivativeData, autoAmplifiedDerivativeData, "Derivative", Color.BLUE);
         constraints.gridy = 1;
         graphs.add(derivativeWav, constraints);
 
-        integralWav = new WavDataPanel(integralData, "Integral", Color.RED);
+        integralWav = new WavDataPanel(integralData, autoAmplifiedIntegralData, "Integral", Color.RED);
         constraints.gridy = 2;
         graphs.add(integralWav, constraints);
 
