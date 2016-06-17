@@ -1,6 +1,5 @@
 package com.lightark.sounderivative.audio;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

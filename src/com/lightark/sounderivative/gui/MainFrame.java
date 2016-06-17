@@ -10,6 +10,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -22,7 +23,7 @@ public class MainFrame extends JFrame implements ChangeListener, TabCloseListene
     {
         super("Sounderivative");
 
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.setSize(500, 500);
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setLayout(new BorderLayout());
@@ -38,7 +39,7 @@ public class MainFrame extends JFrame implements ChangeListener, TabCloseListene
         JMenu fileMenu = new JMenu("File");
 
         JMenuItem openItem = new JMenuItem("Open...");
-        openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+        openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         openItem.addActionListener(new ActionListener()
         {
             @Override

@@ -188,7 +188,7 @@ public class WavDataPanel extends JPanel
                                     progressDialog.dispose();
 
                                     Icon saveIcon = Resources.loadIcon("save.png");
-                                    int selection = JOptionPane.showOptionDialog(frame, "File saved to: " + destination.getAbsolutePath(), "Export Complete", JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, saveIcon, new String[]{"Show in Explorer", "Close"}, 0);
+                                    int selection = JOptionPane.showOptionDialog(frame, "File saved to: " + destination.getAbsolutePath(), "Export Complete", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, saveIcon, new String[]{"Show in Explorer", "Close"}, 0);
                                     if(selection == 0)
                                     {
                                         Runtime.getRuntime().exec("explorer.exe /select, \"" + destination.getAbsolutePath() + "\"");
