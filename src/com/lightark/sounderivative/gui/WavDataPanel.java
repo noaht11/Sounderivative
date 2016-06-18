@@ -17,6 +17,8 @@ import java.io.IOException;
 
 public class WavDataPanel extends JPanel
 {
+    private static final int INFO_PANEL_WIDTH = 150;
+
     private WavData wavData;
     private WavData autoAmplifiedData;
 
@@ -215,7 +217,7 @@ public class WavDataPanel extends JPanel
         });
         infoPanel.add(exportButton);
 
-        infoPanel.setPreferredSize(new Dimension(150, infoPanel.getPreferredSize().height));
+        infoPanel.setPreferredSize(new Dimension(INFO_PANEL_WIDTH, infoPanel.getPreferredSize().height));
 
         add(infoPanel, BorderLayout.LINE_START);
 
