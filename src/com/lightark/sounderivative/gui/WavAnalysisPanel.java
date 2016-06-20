@@ -10,7 +10,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
-public class WavAnalysisPanel extends JPanel implements Runnable
+public class WavAnalysisPanel extends JPanel implements Runnable, AutoScrollListener
 {
     private static final float MAX_ZOOM = 20.0f;
     private static final float MIN_ZOOM = 0.2f;
@@ -301,14 +301,17 @@ public class WavAnalysisPanel extends JPanel implements Runnable
         // DISPLAY ALL THE GRAPHS
 
         srcWav = new WavDataPanel(srcData, srcData, "Original", Color.BLACK);
+        srcWav.setAutoScrollListener(this);
         constraints.gridy = 0;
         graphs.add(srcWav, constraints);
 
         derivativeWav = new WavDataPanel(derivativeData, autoAmplifiedDerivativeData, "Derivative", Color.BLUE);
+        derivativeWav.setAutoScrollListener(this);
         constraints.gridy = 1;
         graphs.add(derivativeWav, constraints);
 
         integralWav = new WavDataPanel(integralData, autoAmplifiedIntegralData, "Integral", Color.RED);
+        integralWav.setAutoScrollListener(this);
         constraints.gridy = 2;
         graphs.add(integralWav, constraints);
 
@@ -321,5 +324,21 @@ public class WavAnalysisPanel extends JPanel implements Runnable
     {
         progressDialog.dispose();
         JOptionPane.showOptionDialog(null, "Unable to read WAV file", "Error", JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null, null, 0);
+    }
+
+    @Override
+    public void graphAutoScrolled(int newScroll)
+    {
+        srcWav.setScroll(newScroll);
+        srcWav.revalidate();
+        srcWav.repaint();
+
+        derivativeWav.setScroll(newScroll);
+        derivativeWav.revalidate();
+        derivativeWav.repaint();
+
+        integralWav.setScroll(newScroll);
+        integralWav.revalidate();
+        integralWav.repaint();
     }
 }

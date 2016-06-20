@@ -30,10 +30,27 @@ public class Graph
         recalculate();
     }
 
+    public void setPixelWidth(int pixelWidth)
+    {
+        this.pixelWidth = pixelWidth;
+        recalculate();
+    }
+
+    public void setPixelHeight(int pixelHeight)
+    {
+        this.pixelHeight = pixelHeight;
+        recalculate();
+    }
+
     public void setZoom(double zoom)
     {
         this.zoom = zoom;
         recalculate();
+    }
+
+    public double getZoom()
+    {
+        return zoom;
     }
 
     public void setScroll(int scroll)
@@ -42,18 +59,34 @@ public class Graph
         recalculate();
     }
 
+    public int getScroll()
+    {
+        return scroll;
+    }
+
+    public void setAutoAmplify(boolean autoAmplify)
+    {
+        this.autoAmplify = autoAmplify;
+        recalculate();
+    }
+
     private void recalculate()
     {
         double scaledWidth = pixelWidth * zoom;
 
         framesPerPixel = numFrames / scaledWidth;
-        yScale = Math.max(Math.abs(maxValue), Math.abs(minValue));
+        yScale = autoAmplify ? Math.max(Math.abs(maxValue), Math.abs(minValue)) : 1.0;
         graphHeight = pixelHeight / 2.0;
     }
 
     public double getXCoordForFrameNumber(long frameNumber)
     {
-        return (frameNumber / framesPerPixel) + scroll;
+        return getAbsoluteXCoordForFrameNumber(frameNumber) + scroll;
+    }
+
+    public double getAbsoluteXCoordForFrameNumber(long frameNumber)
+    {
+        return (frameNumber / framesPerPixel);
     }
 
     public double getXCoordForTime(long milliseconds)

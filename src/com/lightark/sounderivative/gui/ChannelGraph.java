@@ -1,6 +1,5 @@
 package com.lightark.sounderivative.gui;
 
-import com.lightark.sounderivative.audio.Transformer;
 import com.lightark.sounderivative.audio.WavData;
 
 import javax.swing.*;
@@ -9,16 +8,17 @@ import java.awt.geom.GeneralPath;
 
 public class ChannelGraph extends JPanel
 {
+    private static final Color CURSOR_COLOR = Color.GREEN;
+
     private WavData wavData;
     private int channelIndex;
+    private Graph graph;
 
     private Color graphColor;
-    private float zoom = 1.0f;
-    private int scroll = 0;
-    private boolean autoAmplify = false;
     boolean rightEdgeOffScreen = false;
 
     private long cursorPosition = -1;
+    private AutoScrollListener autoScrollListener;
 
     public ChannelGraph(WavData wavData, int channelIndex, Color graphColor)
     {
@@ -28,26 +28,33 @@ public class ChannelGraph extends JPanel
         this.wavData = wavData;
         this.channelIndex = channelIndex;
         this.graphColor = graphColor;
+
+        graph = new Graph(getWidth(), getHeight(), wavData.getMaxValue(), wavData.getMinValue(), wavData.getNumFrames(), wavData.getSampleRate(), true);
     }
 
     public void setZoom(float zoom)
     {
-        this.zoom = zoom;
+        graph.setZoom(zoom);
     }
 
     public void setScroll(int scroll)
     {
-        this.scroll = scroll;
+        graph.setScroll(scroll);
     }
 
     public void setAutoAmplify(boolean autoAmplify)
     {
-        this.autoAmplify = autoAmplify;
+        graph.setAutoAmplify(autoAmplify);
     }
 
     public void setCursorPosition(long frameNumber)
     {
         this.cursorPosition = frameNumber;
+    }
+
+    public void setAutoScrollListener(AutoScrollListener listener)
+    {
+        this.autoScrollListener = listener;
     }
 
     @Override
@@ -62,93 +69,105 @@ public class ChannelGraph extends JPanel
 
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         g2.setColor(graphColor);
 
-        // x
         int pixelWidth = getWidth();
-        int scaledWidth = (int)(getWidth() * zoom);
-        if(scaledWidth == 0)
-        {
-            return;
-        }
-        long pixelsPerFrame = scaledWidth / wavData.getNumFrames();
-        long framesPerPixel = wavData.getNumFrames() / scaledWidth;
-
-        // y
         int pixelHeight = getHeight();
 
-        WavData.WavDataIterator iterator = wavData.createIterator();
-        int xValueCount = 0;
+        graph.setPixelWidth(pixelWidth);
+        graph.setPixelHeight(pixelHeight);
 
-        double yEquals0 = pixelHeight / 2;
-        double yScale = autoAmplify ? Transformer.Amplifier.getScaleFactor(wavData) : 1.0;
-
+        int yEqualsZero = (int)graph.getYEqualsZero();
         g2.setColor(Color.LIGHT_GRAY);
-        g2.drawLine(0, (int)yEquals0, pixelWidth, (int)yEquals0);
+        g2.drawLine(0, yEqualsZero, pixelWidth, yEqualsZero);
         g2.setColor(graphColor);
 
-        GeneralPath path = new GeneralPath();
-        boolean moved = false;
-
-        boolean cursorDrawn = false;
-        while(iterator.hasNext())
+        // Auto-scroll for cursor
+        if(cursorPosition != -1)
         {
-            double[] sample = iterator.nextFrame();
+            int xCoord = (int) graph.getXCoordForFrameNumber(cursorPosition);
 
-            if(pixelsPerFrame == 0)
+            if(xCoord < 0 || xCoord > pixelWidth)
             {
-                // We can't even fit one pixel per frame so we have to use multiple frames for each pixel
-                // Only capture every (framesPerPixel)th value
-                if(iterator.currentIndex() % framesPerPixel != 0)
+                int newScroll = (int)(-graph.getAbsoluteXCoordForFrameNumber(cursorPosition));
+                graph.setScroll(newScroll);
+                if(autoScrollListener != null)
                 {
-                    continue;
+                    autoScrollListener.graphAutoScrolled(newScroll);
                 }
             }
+        }
 
-            double channelValue = sample[channelIndex];
+        GeneralPath path = new GeneralPath();
 
-            // x
-            long xValue = xValueCount;
-            int xCoord = (int)xValue + scroll;
+        boolean moved = false;
 
-            // Skip over x coordinates that are off-screen to the left
+        int prevXCoord = -1;
+        double maxSampleForXCoord = Double.NaN;
+        double minSampleForYCoord = Double.NaN;
+
+        WavData.WavDataIterator iterator = wavData.createIterator();
+        while(iterator.hasNext())
+        {
+            double[] frame = iterator.nextFrame();
+            double sample = frame[channelIndex];
+
+            int xCoord = (int)graph.getXCoordForFrameNumber(iterator.currentIndex());
+            double yCoord = graph.getYCoordForValue(sample);
+
             if(xCoord < 0)
             {
-                xValueCount++;
                 continue;
             }
-            // Stop drawing as soon as we're past the right edge of the screen
-            if(xCoord > pixelWidth)
+            else if(xCoord > pixelWidth)
             {
                 break;
             }
 
-            // Draw cursor if required
-            if(!cursorDrawn && cursorPosition != -1 && iterator.currentIndex() >= cursorPosition)
+            if(xCoord == prevXCoord)
             {
-                g2.drawLine(xCoord, 0, xCoord, pixelHeight);
-                cursorDrawn = true;
-            }
-
-            // y
-            double yValue = (channelValue * (double)(pixelHeight / 2));
-            double yCoord = yEquals0 + -(yValue / yScale);
-
-            if(!moved)
-            {
-                path.moveTo(xCoord, yCoord);
-                moved = true;
+                if(Double.isNaN(maxSampleForXCoord) || sample > maxSampleForXCoord)
+                {
+                    maxSampleForXCoord = sample;
+                }
+                if(Double.isNaN(minSampleForYCoord) || sample < minSampleForYCoord)
+                {
+                    minSampleForYCoord = sample;
+                }
             }
             else
             {
-                path.lineTo(xCoord, yCoord);
-            }
+                // Draw or move to graph location
+                if(!moved)
+                {
+                    path.moveTo(xCoord, yCoord);
+                    moved = true;
+                }
+                else
+                {
+                    double maxYCoord = Double.isNaN(maxSampleForXCoord) ? yCoord : graph.getYCoordForValue(maxSampleForXCoord);
+                    double minYCoord = Double.isNaN(minSampleForYCoord) ? yCoord : graph.getYCoordForValue(minSampleForYCoord);
+                    path.lineTo(xCoord, maxYCoord);
+                    path.lineTo(xCoord, minYCoord);
+                }
 
-            xValueCount++;
+                prevXCoord = xCoord;
+                maxSampleForXCoord = Double.NaN;
+                minSampleForYCoord = Double.NaN;
+            }
         }
 
         g2.draw(path);
 
+        // Draw cursor if required
+        if(cursorPosition != -1)
+        {
+            int xCoord = (int)graph.getXCoordForFrameNumber(cursorPosition);
 
+            g2.setColor(CURSOR_COLOR);
+            g2.fillRect(xCoord - 1, 0, 2, pixelHeight);
+            g2.setColor(graphColor);
+        }
     }
 }

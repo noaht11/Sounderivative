@@ -67,4 +67,12 @@ public class GraphPanel extends JPanel
             channel.setCursorPosition(frameNumber);
         }
     }
+
+    public void setAutoScrollListener(AutoScrollListener listener)
+    {
+        for(ChannelGraph channel : channels)
+        {
+            channel.setAutoScrollListener(listener);
+        }
+    }
 }

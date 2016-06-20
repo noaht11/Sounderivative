@@ -235,4 +235,9 @@ public class WavDataPanel extends JPanel
     {
         graphPanel.setScroll(scroll);
     }
+
+    public void setAutoScrollListener(AutoScrollListener listener)
+    {
+        graphPanel.setAutoScrollListener(listener);
+    }
 }

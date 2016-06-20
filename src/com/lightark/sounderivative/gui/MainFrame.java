@@ -75,6 +75,22 @@ public class MainFrame extends JFrame implements ChangeListener, TabCloseListene
 
         menuBar.add(fileMenu);
 
+        JMenu helpMenu = new JMenu("Help");
+
+        JMenuItem aboutItem = new JMenuItem("About...");
+        aboutItem.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                AboutDialog aboutDialog = new AboutDialog(MainFrame.this);
+                aboutDialog.setVisible(true);
+            }
+        });
+        helpMenu.add(aboutItem);
+
+        menuBar.add(helpMenu);
+
         this.setJMenuBar(menuBar);
     }
 
