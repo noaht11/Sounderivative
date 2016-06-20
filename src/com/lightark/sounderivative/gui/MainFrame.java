@@ -1,8 +1,12 @@
 package com.lightark.sounderivative.gui;
 
+import com.lightark.sounderivative.Resources;
 import com.lightark.sounderivative.gui.utils.filechoosers.OpenFileChooser;
 import com.lightark.sounderivative.gui.utils.tabs.ClosableTab;
 import com.lightark.sounderivative.gui.utils.tabs.TabCloseListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -28,8 +32,19 @@ public class MainFrame extends JFrame implements ChangeListener, TabCloseListene
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.setLayout(new BorderLayout());
 
+        setupIcon();
         setupMenu();
         setupTabs();
+    }
+
+    private void setupIcon()
+    {
+        List<Image> icons = new ArrayList<Image>();
+        icons.add(Resources.loadIcon("app_icon_16.png").getImage());
+        icons.add(Resources.loadIcon("app_icon_32.png").getImage());
+        icons.add(Resources.loadIcon("app_icon_64.png").getImage());
+        icons.add(Resources.loadIcon("app_icon_128.png").getImage());
+        setIconImages(icons);
     }
 
     private void setupMenu()

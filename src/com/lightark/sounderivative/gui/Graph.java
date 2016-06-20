@@ -7,6 +7,7 @@ public class Graph
     private double maxValue;
     private double minValue;
     private long numFrames;
+    private long sampleRate;
     private boolean autoAmplify;
 
     private double zoom = 1.0;
@@ -16,13 +17,14 @@ public class Graph
     private double yScale;
     private double graphHeight;
 
-    public Graph(int pixelWidth, int pixelHeight, double maxValue, double minValue, long numFrames, boolean autoAmplify)
+    public Graph(int pixelWidth, int pixelHeight, double maxValue, double minValue, long numFrames, long sampleRate, boolean autoAmplify)
     {
         this.pixelWidth = pixelWidth;
         this.pixelHeight = pixelHeight;
         this.maxValue = maxValue;
         this.minValue = minValue;
         this.numFrames = numFrames;
+        this.sampleRate = sampleRate;
         this.autoAmplify = autoAmplify;
 
         recalculate();
@@ -51,12 +53,13 @@ public class Graph
 
     public double getXCoordForFrameNumber(long frameNumber)
     {
-        return frameNumber / framesPerPixel;
+        return (frameNumber / framesPerPixel) + scroll;
     }
 
     public double getXCoordForTime(long milliseconds)
     {
-        return 0;
+        double framesPerMillisecond = (double)sampleRate / 1000.0;
+        return getXCoordForFrameNumber((long)(framesPerMillisecond * (double)milliseconds));
     }
 
     public double getYEqualsZero()
